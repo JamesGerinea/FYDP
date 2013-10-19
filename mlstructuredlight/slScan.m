@@ -290,6 +290,11 @@ set(gca,'Pos',[0 0 1 1]); drawnow;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Part II: Reconstruct surface using line-plane intersection.
 
+%ProjectS Custom Parameters
+% Estimate plane equations describing every projector column.
+% Note: Resulting coefficient vector is in camera coordinates.
+
+
 % Reconstruct 3D points using intersection with illumination plane(s).
 % Note: Reconstructs from all cameras in the first camera coordinate system.
 vertices = cell(1,length(Nc));

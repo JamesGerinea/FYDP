@@ -89,7 +89,7 @@ if calibProj
    % Capture/save calibration images for projector calibration.
    rmdir('./proj','s'); mkdir('./proj');
    for i = 1:nImages
-        camPreview(camera);
+
       % Prompt user to capture next image.
       disp(['Press any key to capture projector calibration image ',int2str(i),'...']);
       pause;
@@ -146,4 +146,4 @@ end
 
 % Close the fullscreen display and stop PGR camera(s).
 screen('CloseAll');
-camStop(camera);
+pgrStop(context);

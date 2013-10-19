@@ -125,43 +125,43 @@ T{2} = camCapture(camera);
 % Display/capture image(s) using projector and PGR camera(s).
 disp('Scanning object...');
 disp('+ Displaying structured light sequence...');
-% for j = 1:size(I,1)
-%     for i = 1:size(I,2)
-%         
-%         x = i;
-%         y = j;
-%         
-%         
-%         % Display and capture current Gray code stripe pattern.
-%         Screen('CopyWindow',I{j,i},window,rect,rect);
-%         Screen('Flip',window); pause(frameDelay);
-%         A{j,i} = camCapture(camera);
-%         Screen('CopyWindow',J{j,i},window,rect,rect);
-%         Screen('Flip',window); pause(frameDelay);
-%         B{j,i} = camCapture(camera);
-%         
-%     end
-% end
+for j = 1:size(I,1)
+    for i = 1:size(I,2)
+        
+        x = i;
+        y = j;
+        
+        
+        % Display and capture current Gray code stripe pattern.
+        Screen('CopyWindow',I{j,i},window,rect,rect);
+        Screen('Flip',window); pause(frameDelay);
+        A{j,i} = camCapture(camera);
+        Screen('CopyWindow',J{j,i},window,rect,rect);
+        Screen('Flip',window); pause(frameDelay);
+        B{j,i} = camCapture(camera);
+        
+    end
+end
 
 %%FRANCIS EDIT
-for i = 1:11
-  % Display and capture current Gray code stripe pattern.
-  Screen('CopyWindow',I{1,i},window,rect,rect);
-    Screen('Flip',window); pause(frameDelay);
-  A{1,i} = camCapture(camera);
-  Screen('CopyWindow',J{1,i},window,rect,rect);
-    Screen('Flip',window); pause(frameDelay);
-  B{1,i} = camCapture(camera);
-end
-for i = 1:10
-  % Display and capture current Gray code stripe pattern.
-  Screen('CopyWindow',I{2,i},window,rect,rect);
-    Screen('Flip',window); pause(frameDelay);
-  A{2,i} = camCapture(camera);
-  Screen('CopyWindow',J{2,i},window,rect,rect);
-    Screen('Flip',window); pause(frameDelay);
-  B{2,i} = camCapture(camera);
-end
+% for i = 1:11
+%   % Display and capture current Gray code stripe pattern.
+%   Screen('CopyWindow',I{1,i},window,rect,rect);
+%     Screen('Flip',window); pause(frameDelay);
+%   A{1,i} = camCapture(camera);
+%   Screen('CopyWindow',J{1,i},window,rect,rect);
+%     Screen('Flip',window); pause(frameDelay);
+%   B{1,i} = camCapture(camera);
+% end
+% for i = 1:10
+%   % Display and capture current Gray code stripe pattern.
+%   Screen('CopyWindow',I{2,i},window,rect,rect);
+%     Screen('Flip',window); pause(frameDelay);
+%   A{2,i} = camCapture(camera);
+%   Screen('CopyWindow',J{2,i},window,rect,rect);
+%     Screen('Flip',window); pause(frameDelay);
+%   B{2,i} = camCapture(camera);
+% end
 
 % Disable the fullscreen display.
 %Screen('ShowCursorHelper',window);
@@ -289,6 +289,40 @@ set(gca,'Pos',[0 0 1 1]); drawnow;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Part II: Reconstruct surface using line-plane intersection.
+
+%ProjectS Custom Parameters
+% Estimate plane equations describing every projector column.
+% Note: Resulting coefficient vector is in camera coordinates.
+
+wPlaneCol = zeros(nx_proj,4);
+for i = 1:nx_proj
+   wPlaneCol(i,:) = ...
+      fitPlane([P(1); Np(:,i,1)],[P(2); Np(:,i,2)],[P(3); Np(:,i,3)]);
+   %figure(4); hold on;
+   %plot3(Np(:,i,1),Np(:,i,3),-Np(:,i,2),'r-');
+   %drawnow;
+end
+
+% Estimate plane equations describing every projector row.
+% Note: Resulting coefficient vector is in camera coordinates.
+wPlaneRow = zeros(ny_proj,4);
+for i = 1:ny_proj
+   wPlaneRow(i,:) = ...
+      fitPlane([P(1) Np(i,:,1)],[P(2) Np(i,:,2)],[P(3) Np(i,:,3)]);
+   %figure(4); hold on;
+   %plot3(Np(i,:,1),Np(i,:,3),-Np(i,:,2),'g-');
+   %drawnow;
+end
+
+% Pre-compute optical rays for each camera pixel.
+for i = 1:length(fc_cam)
+   c = 1:nx_cam{i};
+   r = 1:ny_cam{i};
+   [C,R] = meshgrid(c,r);
+   Nc{i} = Rc_1_cam{1}*Rc_1_cam{i}'*pixel2ray([C(:) R(:)]'-1,fc_cam{i},cc_cam{i},kc_cam{i},alpha_c_cam{i});
+   Oc{i} = Rc_1_cam{1}*Rc_1_cam{i}'*(-Tc_1_cam{i}) + Tc_1_cam{1};
+end
+
 
 % Reconstruct 3D points using intersection with illumination plane(s).
 % Note: Reconstructs from all cameras in the first camera coordinate system.
