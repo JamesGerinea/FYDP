@@ -1,20 +1,20 @@
 
 % Reset Matlab environment.
 clear; clc;
-check_cond = 0;
+
 % Add required subdirectories.
-addpath('../utilities');
+addpath('../../utilities');
 
 % Select projector calibation images for inclusion.
-useProjImages = 1:6; %[1:5,7:9];
+useProjImages = 1:20; %[1:5,7:9];
 
 % Define projector calibration plane properties.
 % Note: These lengths are used to determine the extrinsic calibration.
 %       That is, the transformation(s) from reference plane(s) -> camera.
 proj_cal_nX = 1;         % number of rectangles along x-axis
 proj_cal_nY = 1;         % number of rectangles along y-axis
-proj_cal_dX = 553.0;     % length along x-axis (mm) (between checkerboard rectangles) [406.4]
-proj_cal_dY = 499.0;     % length along y-axis (mm) (between checkerboard rectangles) [330.2]
+proj_cal_dX = 406.4;     % length along x-axis (mm) (between checkerboard rectangles) [406.4]
+proj_cal_dY = 335.0;     % length along y-axis (mm) (between checkerboard rectangles) [330.2]
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,67 +78,67 @@ end
 % Part II: Projector-Camera Color Calibration (if necessary).
 
 % Obtain color calibration matrix for each camera.
-%  camIndex = 1; bounds = {}; projValue = {}; inv_color_calib_cam = {};
-%  while exist(['./cam/v',int2str(camIndex)],'dir')
-%     
-%    % Load all color calibration images for this camera.
-%    C = {};
-%    for j = 1:3
-%       C{j} = imread(['./cam/v',int2str(camIndex),'/c',int2str(j),'.bmp']);
-%       projValue{camIndex,j} = load(['./cam/v',int2str(camIndex),'/projValue.mat']);
-%    end
-%    
-%    % Select/save bounding box(if none exists).
-%    color_bounds = {};
-%    if ~exist(['./cam/v',int2str(camIndex),'/color_bounds.mat'],'file')
-%       for j = 1:3
-%          figure(10); clf;
-%          imagesc(C{j}); axis image off;
-%          title('Select the bounding box for color calibration'); drawnow;
-%          [x,y] = ginput(2);
-%          color_bounds{j} = round([min(x) max(x) min(y) max(y)]);
-%          hold on;
-%             plot(color_bounds{j}([1 2 2 1 1]),color_bounds{j}([3 3 4 4 3]),'r.-'); 
-%          hold off;
-%          pause(0.3);
-%       end
-%       bounds{camIndex} = color_bounds;
-%       save(['./cam/v',int2str(camIndex),'/color_bounds.mat'],'color_bounds');
-%    else
-%       load(['./cam/v',int2str(camIndex),'/color_bounds.mat']);
-%       bounds{camIndex} = color_bounds;
-%    end
-%    
-%    % Extract projector-camera color correspondences.
-%    cam_colors = []; proj_colors = [];
-%    for j = 1:3
-%       crop_C = C{j}(bounds{camIndex}{j}(3):bounds{camIndex}{j}(4),...
-%                    bounds{camIndex}{j}(1):bounds{camIndex}{j}(2),:);
-% %       imagesc(crop_C);
-% %       axis image; pause;
-%       crop_C = double(reshape(crop_C,[],3,1)');
-%       crop_P = zeros(size(crop_C));
-%       cam_colors = [cam_colors crop_C];
-%       if j == 1
-%          crop_P(1,:) = projValue{camIndex,j}.projValue;
-%       elseif j == 2
-%          crop_P(2,:) = projValue{camIndex,j}.projValue;
-%       else
-%          crop_P(3,:) = projValue{camIndex,j}.projValue;
-%       end
-%       proj_colors = [proj_colors crop_P];
-%    end
-%    inv_color_calib_cam{camIndex} = inv(cam_colors/proj_colors);
-%    figure(11); 
-%       plot([cam_colors(:,1:1e3:end); proj_colors(:,1:1e3:end)]'); grid on;
-%    figure(12); drawnow;
-%       plot([inv_color_calib_cam{camIndex}*cam_colors(:,1:1e3:end); ...
-%          proj_colors(:,1:1e3:end)]'); grid on; drawnow;
-%    
-%    % Increment camera index.
-%    camIndex = camIndex+1;
-%    
-% end
+camIndex = 1; bounds = {}; projValue = {}; inv_color_calib_cam = {};
+while exist(['./cam/v',int2str(camIndex)],'dir')
+   
+   % Load all color calibration images for this camera.
+   C = {};
+   for j = 1:3
+      C{j} = imread(['./cam/v',int2str(camIndex),'/c',int2str(j),'.bmp']);
+      projValue{camIndex,j} = load(['./cam/v',int2str(camIndex),'/projValue.mat']);
+   end
+   
+   % Select/save bounding box(if none exists).
+   color_bounds = {};
+   if ~exist(['./cam/v',int2str(camIndex),'/color_bounds.mat'],'file')
+      for j = 1:3
+         figure(10); clf;
+         imagesc(C{j}); axis image off;
+         title('Select the bounding box for color calibration'); drawnow;
+         [x,y] = ginput(2);
+         color_bounds{j} = round([min(x) max(x) min(y) max(y)]);
+         hold on;
+            plot(color_bounds{j}([1 2 2 1 1]),color_bounds{j}([3 3 4 4 3]),'r.-'); 
+         hold off;
+         pause(0.3);
+      end
+      bounds{camIndex} = color_bounds;
+      save(['./cam/v',int2str(camIndex),'/color_bounds.mat'],'color_bounds');
+   else
+      load(['./cam/v',int2str(camIndex),'/color_bounds.mat']);
+      bounds{camIndex} = color_bounds;
+   end
+   
+   % Extract projector-camera color correspondences.
+   cam_colors = []; proj_colors = [];
+   for j = 1:3
+      crop_C = C{j}(bounds{camIndex}{j}(3):bounds{camIndex}{j}(4),...
+                   bounds{camIndex}{j}(1):bounds{camIndex}{j}(2),:);
+%       imagesc(crop_C);
+%       axis image; pause;
+      crop_C = double(reshape(crop_C,[],3,1)');
+      crop_P = zeros(size(crop_C));
+      cam_colors = [cam_colors crop_C];
+      if j == 1
+         crop_P(1,:) = projValue{camIndex,j}.projValue;
+      elseif j == 2
+         crop_P(2,:) = projValue{camIndex,j}.projValue;
+      else
+         crop_P(3,:) = projValue{camIndex,j}.projValue;
+      end
+      proj_colors = [proj_colors crop_P];
+   end
+   inv_color_calib_cam{camIndex} = inv(cam_colors/proj_colors);
+   figure(11); 
+      plot([cam_colors(:,1:1e3:end); proj_colors(:,1:1e3:end)]'); grid on;
+   figure(12); drawnow;
+      plot([inv_color_calib_cam{camIndex}*cam_colors(:,1:1e3:end); ...
+         proj_colors(:,1:1e3:end)]'); grid on; drawnow;
+   
+   % Increment camera index.
+   camIndex = camIndex+1;
+   
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

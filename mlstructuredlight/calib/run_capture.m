@@ -3,27 +3,20 @@
 clear; clc;
 
 % Add required subdirectories.
-addpath('../utilities');
-%addpath('../pgr/matSrc/');
-addpath('../drivers');
+addpath('../../utilities');
+addpath('../../pgr/matSrc/');
 
 % Set calibration parameters.
 calibCam    = false; % enable/disable camera calibration data capture
-calibProj   = true; % enable/disable projector calibration data capture
-calibColor  = false;  % enable/disable color calibration data capture
+calibProj   = false; % enable/disable projector calibration data capture
+calibColor  = true;  % enable/disable color calibration data capture
 projValue   = 255;   % Gray code intensity
 pgrShutter  = 400;   % shutter speed for PGR camera(s)
 screenIndex = 2;     % index of projector display (1 = first, 2 = second).
-%nImages     = 30;    % number of calibration images to capture.
-nImages     = 10;
-
-Screen('Preference','SkipSyncTests', 1);
-Screen('Preference','VisualDebugLevel', 0);
+nImages     = 30;    % number of calibration images to capture.
 
 % Get projector display properties.
 % Note: Assumes the Matlab Psychotoolbox is installed.
-clear Screen; Screen('Preference', 'SkipSyncTests', 1);
-Screen('Preference','SuppressAllWarnings',true);
 window = screen('OpenWindow',screenIndex,projValue*[1 1 1]); 
 rect   = screen('Rect',window); clc;
 height = rect(4); width  = rect(3);
@@ -31,16 +24,10 @@ screen('MATLABToFront');
 
 % Initialize PGR camera(s).
 % Note: Make sure to optimize the PGR camera settings.
-%context = pgrInit;
-
-%camera initialization
-camName = {'winvideo'};
-camID       = [1];
-camFormat   = {'RGB24_1280x720'};
-
-% for i = 1:length(context)
-%    matSetFlyShutterSpeed(context(i),pgrShutter,pgrShutter);
-% end
+context = pgrInit;
+for i = 1:length(context)
+   matSetFlyShutterSpeed(context(i),pgrShutter,pgrShutter);
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,9 +63,6 @@ end
 % Create checkerboard image (for projector calibration).
 % Note: Assumes 1024x768 projector resolution.
 if calibProj
-    if ~exist('camera','var')
-        camera = camInit(camName,camID,camFormat);
-    end
    %I = uint8(projValue*(checkerboard(64,6,8) > 0.5));
    I = projValue*ones(height,width,'uint8');
    C = uint8(projValue*(checkerboard(64,4,4) > 0.5));
@@ -89,17 +73,16 @@ if calibProj
    % Capture/save calibration images for projector calibration.
    rmdir('./proj','s'); mkdir('./proj');
    for i = 1:nImages
-        camPreview(camera);
+
       % Prompt user to capture next image.
       disp(['Press any key to capture projector calibration image ',int2str(i),'...']);
       pause;
 
       % Capture image(s) from PGR camera(s).
-      %I = pgrCapture(context);
-      I = camCapture(camera);
+      I = pgrCapture(context);
 
       % Save calibration image(s).
-      for j = 1:length(camera)
+      for j = 1:length(context)
          if ~exist(['./proj/v',int2str(j)],'file')
             mkdir(['./proj/v',int2str(j)]);
          end
@@ -146,4 +129,4 @@ end
 
 % Close the fullscreen display and stop PGR camera(s).
 screen('CloseAll');
-camStop(camera);
+pgrStop(context);

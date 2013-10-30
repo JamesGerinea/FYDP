@@ -16,11 +16,14 @@
 % 18 May 2009
 
 % Add required subdirectories.
-clear all;
+%clear all;
 Screen('Preference','SkipSyncTests', 1);
 Screen('Preference','VisualDebugLevel', 0);
 
-addpath('./utilities','./drivers');
+addpath('./utilities','./drivers','./calib');
+
+%get parameters
+%get_parameters;
 
 % Reset Matlab environment.
 % Note: Keep handles to previous projector screen, camera(s), and codes.
@@ -30,7 +33,7 @@ if exist('window','var')
       stop(camera{i}); start(camera{i});
    end
 else
-   clear;
+   %clear;
 end
 
 % Set structured lighting parameters.
@@ -52,14 +55,14 @@ saveResults = true;    % enable/disable results output
 %       For example, 'info = imaqhwinfo('winvideo');'.
 camName     = {'winvideo'};
 camID       = [1];
-camFormat   = {'RGB24_1280x720'};
+camFormat   = {'RGB24_640x360'};
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Part I: Project Grey code sequence to recover illumination plane(s).
 
 % Load calibration data.
-load('./calib/calib_results/calib_cam_proj.mat');
+%load('./calib/calib_results/calib_cam_proj.mat');
 
 % Get projector display properties.
 % Note: Assumes the Matlab Psychtoolbox is installed.
@@ -290,17 +293,13 @@ set(gca,'Pos',[0 0 1 1]); drawnow;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Part II: Reconstruct surface using line-plane intersection.
 
-%ProjectS Custom Parameters
-% Estimate plane equations describing every projector column.
-% Note: Resulting coefficient vector is in camera coordinates.
-
-
 % Reconstruct 3D points using intersection with illumination plane(s).
 % Note: Reconstructs from all cameras in the first camera coordinate system.
 vertices = cell(1,length(Nc));
 colors   = cell(1,length(Nc));
 disp('+ Reconstructing 3D points...');
-for i = 1:length(Nc)
+%for i = 1:length(Nc)
+    i = 1;
    idx       = find(~isnan(D{1,i}) & ~isnan(D{2,i}));
    [row,col] = ind2sub(size(D{1,i}),idx);
    npts      = length(idx);
@@ -308,8 +307,8 @@ for i = 1:length(Nc)
    Rc        = im2double(T{1}{i}(:,:,1));
    Gc        = im2double(T{1}{i}(:,:,2));
    Bc        = im2double(T{1}{i}(:,:,3));
-   vV = intersectLineWithPlane(repmat(Oc{i},1,npts),Nc{i}(:,idx),wPlaneCol(D{1,i}(idx),:)');
-   vH = intersectLineWithPlane(repmat(Oc{i},1,npts),Nc{i}(:,idx),wPlaneRow(D{2,i}(idx),:)');
+   vV = intersectLineWithPlane(repmat(Oc,1,npts),Nc(:,idx),wPlaneCol(D{1,i}(idx),:)');
+   vH = intersectLineWithPlane(repmat(Oc,1,npts),Nc(:,idx),wPlaneRow(D{2,i}(idx),:)');
    vertices{i} = vV';
    rejectIdx = find(sqrt(sum((vV-vH).^2)) > distReject);
    vertices{i}(rejectIdx,1) = NaN;
@@ -318,7 +317,7 @@ for i = 1:length(Nc)
    colors{i}(:,1) = Rc(idx);
    colors{i}(:,2) = Gc(idx);
    colors{i}(:,3) = Bc(idx);
-end
+%end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
