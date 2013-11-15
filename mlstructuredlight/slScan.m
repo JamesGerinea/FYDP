@@ -363,7 +363,7 @@ idx{i} = find(~isnan(vertices{i}(:,1)));
 vertices{i}(:,2) = -vertices{i}(:,2);
 
 % Testing out ply_write function
-%write_ply( vertices, 'thebestscannerofalltime.ply','ascii');
+write_ply( -1.*vertices{1}, 'empty_string','one_view_pc.ply');
 
 vrmlPoints(['./data/',seqType,'/',objName,'/v',int2str(i),'.wrl'],...
   vertices{i}(idx{i},[1 2 3]),colors{i}(idx{i},:));
