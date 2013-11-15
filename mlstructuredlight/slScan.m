@@ -22,8 +22,8 @@ Screen('Preference','VisualDebugLevel', 0);
 
 addpath('./utilities','./drivers','./calib');
 
-%get parameters
-%get_parameters;
+%get_parameters
+get_parameters;
 
 % Reset Matlab environment.
 % Note: Keep handles to previous projector screen, camera(s), and codes.
@@ -55,7 +55,7 @@ saveResults = true;    % enable/disable results output
 %       For example, 'info = imaqhwinfo('winvideo');'.
 camName     = {'winvideo'};
 camID       = [1];
-camFormat   = {'RGB24_640x360'};
+camFormat   = {'RGB24_1280x720'};
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -331,7 +331,7 @@ procamCalibDisplay;
 
 % Display the recovered 3D point cloud (with per-vertex color).
 % Note: Convert to indexed color map for use with FSCATTER3.
-for i = 1:length(Nc)
+for i = 1:1%length(Nc)
    C = reshape(colors{i},[size(colors{i},1) 1 size(colors{i},2)]);
    [C,cmap] = rgb2ind(C,256);
    hold on;
@@ -359,23 +359,21 @@ end
 % Export colored point cloud as a VRML file.
 % Note: Interchange x and y coordinates for j3DPGP.
 clear idx; mergedVertices = []; mergedColors = [];
-for i = 1:length(Nc)
-   idx{i} = find(~isnan(vertices{i}(:,1)));
-   vertices{i}(:,2) = -vertices{i}(:,2);
-   vrmlPoints(['./data/',seqType,'/',objName,'/v',int2str(i),'.wrl'],...
-      vertices{i}(idx{i},[1 2 3]),colors{i}(idx{i},:));
-   mergedVertices = [mergedVertices; vertices{i}(idx{i},[1 2 3])];
-   mergedColors = [mergedColors; colors{i}(idx{i},:)];
-end
-if length(Nc) > 1
-   vrmlPoints(['./data/',seqType,'/',objName,'/merged.wrl'],...
-      mergedVertices,mergedColors);
-end
+idx{i} = find(~isnan(vertices{i}(:,1)));
+vertices{i}(:,2) = -vertices{i}(:,2);
+
+% Testing out ply_write function
+%write_ply( vertices, 'thebestscannerofalltime.ply','ascii');
+
+vrmlPoints(['./data/',seqType,'/',objName,'/v',int2str(i),'.wrl'],...
+  vertices{i}(idx{i},[1 2 3]),colors{i}(idx{i},:));
+mergedVertices = [mergedVertices; vertices{i}(idx{i},[1 2 3])];
+mergedColors = [mergedColors; colors{i}(idx{i},:)];
 
 % Save captured structured lighting sequences.
 if saveResults
    disp('+ Saving structured light image sequence...');
-   for camIdx = 1:length(camera)
+   for camIdx = 1:1%length(camera)
       dataDir = ['./data/',seqType,'/',objName,'/v',int2str(camIdx),'/'];
       imwrite(T{1}{camIdx},[dataDir,num2str(1,'%0.02d'),'.bmp']);
       imwrite(T{2}{camIdx},[dataDir,num2str(2,'%0.02d'),'.bmp']);
