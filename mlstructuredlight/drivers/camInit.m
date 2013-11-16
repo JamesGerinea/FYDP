@@ -22,7 +22,7 @@ for i = 1:nCameras
    set(camera{i},'ReturnedColorSpace','rgb');
    triggerconfig(camera{i},'manual');
    set(camera{i},'FramesPerTrigger',1);
-   set(camera{i},'TriggerRepeat',128);
+   set(camera{i},'TriggerRepeat',Inf);
    src = getselectedsource(camera{i});
    %set(src,'BacklightCompensation','off');
    start(camera{i});
